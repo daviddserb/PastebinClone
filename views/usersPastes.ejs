@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <a href="http://localhost:3000">Home page</a>
+    <% for (var i = 0; i < allPastes.length; ++i) { %>
+      <ul>
+        <%= (i + 1) + ". " + allPastes[i].text %>
+        <!-- sau in loc de (i + 1) pun id-ul din baza de date <%= allPastes[i].id %> -->
+        <a href="/users/edit/<%= allPastes[i].id %>">Edit</a>
+        <a href="/users/delete/<%= allPastes[i].id %>">Delete</a>
+      </ul>
+    <% } %>
+  </body>
+</html>

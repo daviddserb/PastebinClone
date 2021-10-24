@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <form action="/users" method="POST">
+      <div class="container">
+        <p>New Paste</p>
+        <textarea id="inputTextId" name="inputText" required></textarea>
+      </div>
+      <p>Paste expiration:</p>
+      <br><input type="submit" value="Create New Paste">
+    </form>
+    <form action="/users" method="GET">
+      <br><input type="submit" value="All your pastes">
+    </form>
+  </body>
+</html>
