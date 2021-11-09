@@ -17,8 +17,10 @@
         <option value="60">1 hour</option>
         <option value="1440">1 day</option>
         <option value="10080">1 week</option>
-        <option value="40320">1 month</option>
-        <option value="483840">1 year</option>
+        <!-- 'value' of the month is only for 30 days-->
+        <option value="43200">1 month</option>
+        <!-- 'value' of the year is the months (30 days) multiplied by 12-->
+        <option value="518400">1 year</option>
       </select>
       <br><br><input type="submit" value="Create New Paste">
     </form>
