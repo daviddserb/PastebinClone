@@ -36,7 +36,7 @@ connection.query('CREATE TABLE IF NOT EXISTS users(' +
   }
 });
 
-//User's pastes (All the pastes)
+//All your pastes
 router.get('/', (req, res) => {
   selectDataFromDatabase(res);
 });
@@ -46,26 +46,26 @@ router.post('/', (req, res) => {
   let expireTime = req.body.expireTimeName;
   let inputText = req.body.inputTextName;
 
-  //Insert data in the database
+  //Insert text and paste creation date in the database
   connection.query("INSERT INTO users(text, dateAdded)" +
-    "VALUES ('"+ inputText +"', '"+ dt.createdDate() +"')", (err) => {
+    "VALUES ('"+ inputText +"', '"+ dt.createdDate() +"')", (err, result) => {
     if (err) {
       throw err;
     } else {
+      if (expireTime != "never") {
+        //Update the paste expiration date in the database
+        connection.query(`UPDATE users SET dateExpired = '${calculateExpirationDate(expireTime)}' WHERE id = ${result.insertId}`, (err) => {
+          if (err) {
+            throw err;
+          } else {
+            console.log("database updated updated");
+          }
+        });
+      }
       console.log("inserted into the database");
     }
   });
 
-  if (expireTime != "never") {
-    connection.query(`UPDATE users SET dateExpired = '${calculateExpirationDate(expireTime)}' WHERE dateAdded = '${dt.createdDate()}'`, (err) => { //sa aflu cum sa iau id-ul
-      if (err) {
-        throw err;
-      } else {
-        console.log("database updated");
-      }
-    });
-  }
-  //Select data from the database and print it on the web page
   selectDataFromDatabase(res);
 });
 
@@ -76,13 +76,13 @@ connection.query("ALTER EVENT deletePastesAfterTime" +
   " DELETE FROM users" +
   " WHERE `dateExpired` < CURRENT_TIMESTAMP;"
 );
-
 //connection.query("DROP EVENT deletePastesAfterTime"); //delete event
 
-//Update get -> select the text
+//Update get (select the text)
 router.get('/edit/:id', function(req, res) {
   let userId = req.params.id; //take the user id this way because the line above has /:id
   let sqlSelect = `SELECT * FROM users WHERE id = ${userId}`;
+
   connection.query(sqlSelect, function(err, data) {
     if (err) {
       throw err;
@@ -99,11 +99,12 @@ router.get('/edit/:id', function(req, res) {
   });
 });
 
-//Update post -> edit the text and save it
+//Update post (edit the text and save it)
 router.post('/edit/:id', function(req, res) {
   let userId = req.params.id;
   let updateText = req.body.newText;
   let sql = `UPDATE users SET text = '${updateText}' WHERE id = ${userId}`;
+
   connection.query(sql, [updateText, userId], function(err) {
     if (err) {
       throw err;
@@ -117,6 +118,7 @@ router.post('/edit/:id', function(req, res) {
 router.get('/delete/:id', function(req, res) {
   let userId = req.params.id;
   let sql = `DELETE FROM users WHERE id = ${userId}`;
+
   deletePaste(sql);
   res.redirect('/users');
 });
@@ -132,18 +134,9 @@ function selectDataFromDatabase(res) {
   });
 }
 
-function deletePaste(sql) {
-  connection.query(sql, function(err) {
-    if (err) {
-      throw err;
-    } else {
-      console.log("paste deleted");
-    }
-  });
-}
-
 function calculateExpirationDate(expireTime) {
   let dateInLocalTime = new Date(new Date() + 'UTC');
+
   if (expireTime == "1Min") {
     var expirationDate = datefns.addMinutes(dateInLocalTime, 1);
   } else if (expireTime == "1H") {
@@ -157,8 +150,19 @@ function calculateExpirationDate(expireTime) {
   } else {
     var expirationDate = datefns.addYears(dateInLocalTime, 1);
   }
+  
   let expirationDateFormatted = expirationDate.toISOString().replace(/T/, ' ').replace(/\..+/, '');
   return expirationDateFormatted;
+}
+
+function deletePaste(sql) {
+  connection.query(sql, function(err) {
+    if (err) {
+      throw err;
+    } else {
+      console.log("paste deleted");
+    }
+  });
 }
 
 module.exports = router;
